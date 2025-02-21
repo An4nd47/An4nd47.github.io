@@ -12,7 +12,7 @@
 
 - 💬 Ask me about **C++**
 
-- 📫 How to reach me **anandms019@gmail.com**
+- 📫 How to reach me **anandms047@gmail.com**
 
 - ⚡ Fun fact **I may lack in knowledge, not in creativity**
 
