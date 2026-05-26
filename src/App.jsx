@@ -55,8 +55,8 @@ export default function App() {
     }
   };
 
-  const handleSelectTimeline = (id) => {
-    if (navigationMode === 'scroll') {
+  const handleSelectTimeline = (id, forceWarp = false) => {
+    if (navigationMode === 'scroll' && !forceWarp) {
       setActiveTimeline(id);
       const element = document.getElementById(id);
       if (element) {
@@ -64,10 +64,13 @@ export default function App() {
       }
     } else {
       // Warp navigation mode with full-screen warp effect
-      if (activeTimeline === id) return;
+      if (activeTimeline === id && !forceWarp) return;
       setWarpDeparture(activeTimeline);
       setWarpDestination(id);
       setIsWarping(true);
+      if (forceWarp && navigationMode !== 'warp') {
+        setNavigationMode('warp');
+      }
     }
   };
 
@@ -155,7 +158,7 @@ export default function App() {
       {/* Main Content Layout */}
       {navigationMode === 'scroll' ? (
         <div className="continuous-timeline-wrapper">
-          <Hero onInitiate={handleSelectTimeline} />
+          <Hero onInitiate={handleSelectTimeline} navigationMode={navigationMode} />
           <Timeline2023 />
           <Timeline2024 onOpenModal={handleOpenModal} />
           <Timeline2025 />
@@ -165,7 +168,7 @@ export default function App() {
         </div>
       ) : (
         <div className="discrete-warp-wrapper">
-          {activeTimeline === 'hero' && <Hero onInitiate={handleSelectTimeline} />}
+          {activeTimeline === 'hero' && <Hero onInitiate={handleSelectTimeline} navigationMode={navigationMode} />}
           {activeTimeline === 'y2023' && <Timeline2023 />}
           {activeTimeline === 'y2024' && <Timeline2024 onOpenModal={handleOpenModal} />}
           {activeTimeline === 'y2025' && <Timeline2025 />}

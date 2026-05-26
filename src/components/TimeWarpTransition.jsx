@@ -446,7 +446,7 @@ export default function TimeWarpTransition({ isActive, departure, destination, o
       isEndingRef.current = false;
       
       vid.currentTime = 0;
-      vid.load(); // Ensure the new src is loaded
+      // vid.load(); // Removed to prevent a black flash when starting the video
       
       const playPromise = vid.play();
       if (playPromise !== undefined) {
