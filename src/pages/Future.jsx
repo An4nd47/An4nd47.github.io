@@ -226,9 +226,10 @@ export default function Future() {
   };
 
   return (
-    <PageTransition>
-      <div
-        className="relative min-h-screen overflow-hidden"
+    <>
+      <PageTransition>
+        <div
+          className="relative min-h-screen overflow-hidden"
         style={{ background: '#030010' }}
       >
         {/* Star field background */}
@@ -363,6 +364,8 @@ export default function Future() {
         <div className="fixed bottom-4 right-4 w-10 h-10 pointer-events-none" style={{ borderBottom: '2px solid rgba(138,92,255,0.4)', borderRight: '2px solid rgba(138,92,255,0.4)' }} />
       </div>
 
+      </PageTransition>
+
       {/* Video overlay */}
       <AnimatePresence>
         {playing && (
@@ -390,6 +393,6 @@ export default function Future() {
           </motion.div>
         )}
       </AnimatePresence>
-    </PageTransition>
+    </>
   );
 }

@@ -43,7 +43,7 @@ const SKILL_SECTIONS = [
   {
     title: 'Editing',
     icon: '▶',
-    items: ['DaVinci Resolve (Currently Learning)'],
+    items: ['DaVinci Resolve'],
   },
 ];
 
@@ -164,9 +164,10 @@ export default function Past() {
   };
 
   return (
-    <PageTransition>
-      <div
-        className="relative min-h-screen"
+    <>
+      <PageTransition>
+        <div
+          className="relative min-h-screen"
         style={{ background: 'linear-gradient(180deg, #020408 0%, #000d1a 50%, #020408 100%)' }}
       >
         {/* Background */}
@@ -285,6 +286,8 @@ export default function Past() {
         <div className="fixed top-4 right-4 w-10 h-10 pointer-events-none" style={{ borderTop: '2px solid rgba(0,200,255,0.3)', borderRight: '2px solid rgba(0,200,255,0.3)' }} />
       </div>
 
+      </PageTransition>
+
       {/* Video overlay */}
       <AnimatePresence>
         {playing && (
@@ -312,6 +315,6 @@ export default function Past() {
           </motion.div>
         )}
       </AnimatePresence>
-    </PageTransition>
+    </>
   );
 }

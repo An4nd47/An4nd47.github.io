@@ -1,63 +1,141 @@
-import { useEffect, useRef, useState } from 'react';
-import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import ParticleField from '../components/ParticleField';
 import PageTransition from '../components/PageTransition';
 
-const STATUS_LINES = [
-  { icon: '◈', text: 'Full Stack Web Developer (Learning)' },
-  { icon: '◈', text: 'React.js & Node.js Enthusiast' },
-  { icon: '◈', text: 'Building Modern Web Applications' },
-  { icon: '◈', text: 'Exploring AI & Machine Learning Fundamentals' },
-  { icon: '◈', text: 'Currently Learning DaVinci Resolve Video Editing' },
+// Audio Context for the typing sound
+let audioCtx = null;
+let hasSeenAnimation = false;
+
+const initAudio = () => {
+  if (typeof window !== 'undefined') {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!audioCtx && AudioContext) {
+      audioCtx = new AudioContext();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  }
+};
+
+const playTypingSound = () => {
+  if (!audioCtx) return;
+  try {
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(600 + Math.random() * 400, audioCtx.currentTime);
+    
+    gainNode.gain.setValueAtTime(0.015, audioCtx.currentTime); // Professional, subtle volume
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+    
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.05);
+  } catch (e) {
+    // Fail silently if audio isn't supported or fails
+  }
+};
+
+const SKILL_CATEGORIES = [
+  { name: 'FRONTEND', items: ['HTML5', 'CSS3', 'JavaScript', 'React.js'] },
+  { name: 'BACKEND', items: ['Node.js', 'Express.js', 'Python', 'REST APIs'] },
+  { name: 'UI', items: ['Figma', 'DaVinci Resolve'] },
+  { name: 'OTHER', items: ['MySQL', 'SQL'] }
 ];
 
-const SKILLS = [
-  'JavaScript', 'Python', 'SQL', 'HTML5', 'CSS3',
-  'React.js', 'Node.js', 'Express.js', 'REST APIs', 'MySQL',
-  'Git', 'GitHub', 'VS Code', 'npm', 'Figma', 'DaVinci Resolve',
-];
+// Helper component for typewriter effect
+function TypewriterLine({ text, onComplete, speed = 30, instant = false }) {
+  const [displayedText, setDisplayedText] = useState(instant ? text : '');
+  const onCompleteRef = useRef(onComplete);
+  
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+  
+  useEffect(() => {
+    if (instant) {
+      setDisplayedText(text);
+      return;
+    }
 
-const SKILL_COLORS = [
-  '#00C8FF', '#8A5CFF', '#00C8FF', '#4DFFB4', '#FF6B9D',
-  '#00C8FF', '#8A5CFF', '#00C8FF', '#FFD700', '#4DFFB4',
-  '#FF6B9D', '#00C8FF', '#8A5CFF', '#4DFFB4', '#FF6B9D', '#FFD700',
-];
+    let timeoutId;
+    let i = 0;
+    
+    const typeNextChar = () => {
+      if (i < text.length) {
+        setDisplayedText(text.slice(0, i + 1));
+        if (text[i] !== ' ') {
+          playTypingSound();
+        }
+        i++;
+        // Add random variation to typing speed for realism
+        const variance = Math.random() * 20 - 10;
+        timeoutId = setTimeout(typeNextChar, Math.max(10, speed + variance));
+      } else {
+        if (onCompleteRef.current) onCompleteRef.current();
+      }
+    };
+    
+    timeoutId = setTimeout(typeNextChar, speed);
+    
+    return () => clearTimeout(timeoutId);
+  }, [text, speed, instant]);
+  
+  return <span>{displayedText}</span>;
+}
 
-function SkillChip({ skill, color, index }) {
-  const [hovered, setHovered] = useState(false);
+// Renders a list of items sequentially
+function TypewriterBlock({ items, onComplete, speed = 30, instant = false }) {
+  const [currentIndex, setCurrentIndex] = useState(instant ? items.length : 0);
+  const onCompleteRef = useRef(onComplete);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+
+  const handleLineComplete = useCallback(() => {
+    if (currentIndex < items.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+    } else {
+      if (onCompleteRef.current) onCompleteRef.current();
+    }
+  }, [currentIndex, items.length]);
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30, scale: 0.8 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.5, delay: 0.8 + index * 0.06, ease: 'easeOut' }}
-      whileHover={{ scale: 1.15, y: -6 }}
-      onHoverStart={() => setHovered(true)}
-      onHoverEnd={() => setHovered(false)}
-      style={{
-        background: `rgba(${color === '#00C8FF' ? '0,200,255' : color === '#8A5CFF' ? '138,92,255' : '77,255,180'}, 0.08)`,
-        border: `1px solid ${color}40`,
-        boxShadow: hovered ? `0 0 20px ${color}60, 0 0 40px ${color}30` : `0 0 8px ${color}20`,
-        color: color,
-        borderRadius: '8px',
-        padding: '8px 16px',
-        fontSize: '0.75rem',
-        fontFamily: 'Orbitron, monospace',
-        letterSpacing: '0.1em',
-        cursor: 'pointer',
-        transition: 'box-shadow 0.3s ease',
-        backdropFilter: 'blur(10px)',
-        userSelect: 'none',
-      }}
-    >
-      {skill}
-    </motion.div>
+    <ul className="space-y-1 mt-2">
+      {items.map((item, idx) => (
+        <li key={item} className="text-[var(--electric-blue)] text-xs md:text-sm flex items-start min-h-[20px]">
+          {(instant || idx <= currentIndex) && (
+            <>
+              <span className="mr-2 text-[var(--neon-purple)] opacity-70">&gt;</span>
+              <TypewriterLine 
+                text={item} 
+                onComplete={(!instant && idx === currentIndex) ? handleLineComplete : undefined} 
+                speed={speed} 
+                instant={instant}
+              />
+            </>
+          )}
+        </li>
+      ))}
+    </ul>
   );
 }
 
 export default function Hero() {
   const navigate = useNavigate();
+  const isInstant = useRef(hasSeenAnimation).current;
   const [portalActive, setPortalActive] = useState(false);
+  const [initialized, setInitialized] = useState(isInstant);
+  const [stage, setStage] = useState(isInstant ? 6 : 0);
+  const [blocksCompleted, setBlocksCompleted] = useState(0);
+  
   const containerRef = useRef(null);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -72,15 +150,40 @@ export default function Hero() {
     };
     window.addEventListener('mousemove', handle);
     return () => window.removeEventListener('mousemove', handle);
-  }, []);
+  }, [mouseX, mouseY]);
 
   const lightX = useTransform(mouseX, [-0.5, 0.5], ['-30%', '130%']);
   const lightY = useTransform(mouseY, [-0.5, 0.5], ['-30%', '130%']);
+
+  const handleInitialize = () => {
+    initAudio();
+    setInitialized(true);
+    setStage(1);
+    hasSeenAnimation = true;
+  };
 
   const handleEnterTimeMachine = () => {
     setPortalActive(true);
     setTimeout(() => navigate('/time-machine'), 700);
   };
+
+  // Prevent scroll jumping
+  const onLineComplete = useCallback((nextStage) => {
+    // Add small delay before starting next line
+    setTimeout(() => {
+      setStage(nextStage);
+    }, 200);
+  }, []);
+
+  const handleBlockComplete = useCallback(() => {
+    setBlocksCompleted(prev => {
+      const next = prev + 1;
+      if (next === SKILL_CATEGORIES.length) {
+        setTimeout(() => setStage(6), 200);
+      }
+      return next;
+    });
+  }, []);
 
   return (
     <PageTransition>
@@ -128,202 +231,229 @@ export default function Hero() {
         )}
 
         {/* Main content */}
-        <div className="relative z-10 flex flex-col items-center justify-start min-h-screen pt-16 pb-20 px-4">
-
-          {/* Timeline badge */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="font-orbitron text-xs tracking-[0.4em] mb-6 px-6 py-2 rounded-full"
-            style={{
-              color: 'var(--electric-blue)',
-              border: '1px solid rgba(0,200,255,0.3)',
-              background: 'rgba(0,200,255,0.05)',
-              letterSpacing: '0.35em',
-            }}
-          >
-            ◉ CURRENT TIMELINE — 2026
-          </motion.div>
-
-          {/* Hero heading */}
-          <div className="text-center mb-4">
-            <motion.h1
-              initial={{ opacity: 0, y: 30, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className="font-orbitron font-black text-5xl md:text-7xl lg:text-8xl text-white mb-2 glitch"
-              data-text="ANAND"
-              style={{ letterSpacing: '0.15em' }}
-            >
-              ANAND
-            </motion.h1>
-            <motion.div
-              initial={{ opacity: 0, scaleX: 0 }}
-              animate={{ opacity: 1, scaleX: 1 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-              className="h-[2px] mx-auto mb-4"
-              style={{
-                width: '200px',
-                background: 'linear-gradient(90deg, transparent, var(--electric-blue), var(--neon-purple), transparent)',
-                boxShadow: '0 0 20px rgba(0,200,255,0.6)',
-              }}
-            />
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.7 }}
-              className="font-inter text-base md:text-xl max-w-2xl mx-auto leading-relaxed"
-              style={{ color: 'var(--text-secondary)' }}
-            >
-              Building intelligent web experiences while exploring the future of AI.
-            </motion.p>
-          </div>
-
-          {/* Status panel + Skill hologram side by side on desktop */}
-          <div className="w-full max-w-6xl mx-auto flex flex-col lg:flex-row gap-6 mt-8 px-4">
-
-            {/* Current Status Glass Panel */}
-            <motion.div
-              initial={{ opacity: 0, x: -40 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7, delay: 0.8 }}
-              className="glass flex-1 p-6"
-              style={{ minWidth: 0 }}
-            >
-              <div className="flex items-center gap-3 mb-5">
-                <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: 'var(--electric-blue)', boxShadow: '0 0 8px var(--electric-blue)' }} />
-                <span className="font-orbitron text-xs tracking-widest" style={{ color: 'var(--electric-blue)' }}>
-                  CURRENT STATUS
-                </span>
-              </div>
-              <div className="space-y-3">
-                {STATUS_LINES.map((line, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5, delay: 1.0 + i * 0.15 }}
-                    className="flex items-start gap-3 group"
-                  >
-                    <motion.span
-                      animate={{ opacity: [1, 0.4, 1] }}
-                      transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
-                      className="mt-0.5 flex-shrink-0"
-                      style={{ color: 'var(--electric-blue)', fontSize: '0.8rem' }}
-                    >
-                      {line.icon}
-                    </motion.span>
-                    <span
-                      className="font-inter text-sm leading-relaxed group-hover:text-white transition-colors"
-                      style={{ color: 'var(--text-secondary)' }}
-                    >
-                      {line.text}
+        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen pt-16 pb-20 px-4">
+          
+          <AnimatePresence mode="wait">
+            {!initialized ? (
+              <motion.div
+                key="init-btn"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }}
+                transition={{ duration: 0.5 }}
+                className="flex flex-col items-center justify-center"
+              >
+                <div className="w-16 h-16 mb-8 rounded-full border border-[rgba(0,200,255,0.5)] flex items-center justify-center animate-pulse" style={{ boxShadow: '0 0 20px rgba(0,200,255,0.3)' }}>
+                  <div className="w-3 h-3 bg-[var(--electric-blue)] rounded-full" />
+                </div>
+                <button
+                  onClick={handleInitialize}
+                  className="font-orbitron text-lg md:text-xl tracking-[0.3em] text-[var(--electric-blue)] hover:text-white hover:shadow-[0_0_30px_rgba(0,200,255,0.6)] transition-all duration-300 px-10 py-5 border border-[rgba(0,200,255,0.5)] rounded-xl glass"
+                  style={{ background: 'rgba(0,200,255,0.05)' }}
+                >
+                  INITIALIZE SYSTEM
+                </button>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="terminal"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="w-full max-w-4xl mx-auto flex flex-col items-center"
+              >
+                {/* Terminal Window */}
+                <div 
+                  className="w-full glass p-6 md:p-8 mb-8 relative overflow-hidden text-left"
+                  style={{
+                    boxShadow: '0 0 40px rgba(0,200,255,0.1), inset 0 0 20px rgba(0,200,255,0.05)',
+                    border: '1px solid rgba(0,200,255,0.3)',
+                    minHeight: '480px'
+                  }}
+                >
+                  {/* Scan line effect inside terminal */}
+                  <div className="absolute inset-0 pointer-events-none opacity-20" style={{ background: 'linear-gradient(transparent 50%, rgba(0, 0, 0, 0.25) 50%)', backgroundSize: '100% 4px' }} />
+                  
+                  {/* Terminal Header */}
+                  <div className="flex items-center gap-3 mb-6 border-b border-[rgba(0,200,255,0.2)] pb-4">
+                    <div className="flex gap-2">
+                      <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                      <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                      <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                    </div>
+                    <span className="font-orbitron text-xs tracking-widest text-[var(--text-dim)] uppercase ml-2">
+                      System Boot Sequence - Terminal v1.0
                     </span>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
+                  </div>
 
-            {/* Skill Hologram Panel */}
-            <motion.div
-              initial={{ opacity: 0, x: 40 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7, delay: 0.9 }}
-              className="glass flex-1 p-6"
-              style={{ minWidth: 0 }}
-            >
-              <div className="flex items-center gap-3 mb-5">
-                <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: 'var(--neon-purple)', boxShadow: '0 0 8px var(--neon-purple)' }} />
-                <span className="font-orbitron text-xs tracking-widest" style={{ color: 'var(--neon-purple)' }}>
-                  SKILL HOLOGRAM
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {SKILLS.map((skill, i) => (
-                  <SkillChip key={skill} skill={skill} color={SKILL_COLORS[i]} index={i} />
-                ))}
-              </div>
-            </motion.div>
-          </div>
+                  {/* Terminal Body (Typing Animation) */}
+                  <div className="font-orbitron text-sm md:text-base leading-loose text-[var(--text-primary)] space-y-4 relative z-10 w-full text-left">
+                    
+                    {stage >= 1 && (
+                      <div className="flex items-start">
+                        <span className="text-[var(--neon-purple)] mr-3 flex-shrink-0 mt-1">&gt;</span>
+                        <div className="break-words">
+                          <span className="text-[var(--text-dim)] mr-2">NAME:</span>
+                          <span className="text-white font-bold tracking-wider">
+                            <TypewriterLine 
+                              text="ANAND M S" 
+                              onComplete={() => onLineComplete(2)} 
+                              speed={50}
+                              instant={isInstant}
+                            />
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {stage >= 2 && (
+                      <div className="flex items-start">
+                        <span className="text-[var(--neon-purple)] mr-3 flex-shrink-0 mt-1">&gt;</span>
+                        <div className="break-words">
+                          <span className="text-[var(--text-dim)] mr-2">QUALIFICATION:</span>
+                          <span className="text-white tracking-wider">
+                            <TypewriterLine 
+                              text="BTECH in CSE AI & ML" 
+                              onComplete={() => onLineComplete(3)} 
+                              speed={40}
+                              instant={isInstant}
+                            />
+                          </span>
+                        </div>
+                      </div>
+                    )}
 
-          {/* Enter Time Machine Button */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1.5 }}
-            className="mt-12"
-          >
-            <motion.button
-              id="enter-time-machine"
-              data-magnetic
-              onClick={handleEnterTimeMachine}
-              className="relative font-orbitron font-bold text-base md:text-lg px-12 py-5 rounded-xl overflow-hidden"
-              style={{
-                background: 'linear-gradient(135deg, rgba(0,200,255,0.1), rgba(138,92,255,0.1))',
-                border: '1px solid rgba(0,200,255,0.5)',
-                color: 'var(--electric-blue)',
-                letterSpacing: '0.2em',
-              }}
-              whileHover={{
-                scale: 1.05,
-                boxShadow: '0 0 40px rgba(0,200,255,0.5), 0 0 80px rgba(0,200,255,0.25)',
-                borderColor: 'rgba(0,200,255,0.9)',
-              }}
-              whileTap={{ scale: 0.97 }}
-              animate={{
-                boxShadow: [
-                  '0 0 20px rgba(0,200,255,0.3)',
-                  '0 0 40px rgba(0,200,255,0.6)',
-                  '0 0 20px rgba(0,200,255,0.3)',
-                ],
-              }}
-              transition={{
-                boxShadow: { duration: 2.5, repeat: Infinity, ease: 'easeInOut' },
-              }}
-            >
-              {/* Shimmer overlay */}
-              <motion.span
-                className="absolute inset-0 holographic opacity-60"
-                animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
-                transition={{ duration: 3, repeat: Infinity }}
-              />
-              {/* Button text */}
-              <span className="relative z-10 flex items-center gap-3">
-                <motion.span
-                  animate={{ rotate: [0, 360] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
-                >
-                  ⊕
-                </motion.span>
-                ENTER TIME MACHINE
-                <motion.span
-                  animate={{ rotate: [0, -360] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
-                >
-                  ⊕
-                </motion.span>
-              </span>
-            </motion.button>
-          </motion.div>
+                    {stage >= 3 && (
+                      <div className="flex items-start mt-6">
+                        <span className="text-[var(--neon-purple)] mr-3 flex-shrink-0 mt-1">&gt;</span>
+                        <div className="break-words">
+                          <span className="text-[var(--text-dim)] mr-2 block mb-1">BIO:</span>
+                          <span className="font-inter text-[var(--text-secondary)] leading-relaxed text-sm md:text-base">
+                            <TypewriterLine 
+                              text="Passionate software engineer exploring the intersection of modern web development and artificial intelligence. Driven by a desire to build intelligent, scalable, and immersive digital experiences." 
+                              onComplete={() => onLineComplete(4)} 
+                              speed={15}
+                              instant={isInstant}
+                            />
+                          </span>
+                        </div>
+                      </div>
+                    )}
 
-          {/* Scroll hint */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 2.5 }}
-            className="mt-8 flex flex-col items-center gap-2"
-          >
-            <span className="font-inter text-xs tracking-widest" style={{ color: 'var(--text-dim)' }}>
-              SCROLL TO EXPLORE
-            </span>
-            <motion.div
-              className="w-[1px] h-8"
-              style={{ background: 'linear-gradient(180deg, var(--electric-blue), transparent)' }}
-              animate={{ opacity: [1, 0, 1], scaleY: [1, 0.5, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
-          </motion.div>
+                    {stage >= 4 && (
+                      <div className="flex flex-col items-start mt-8 w-full">
+                        <div className="flex items-center mb-4">
+                          <span className="text-[var(--neon-purple)] mr-3">&gt;</span>
+                          <span className="text-[var(--text-dim)] mr-2">TECH_STACKS:</span>
+                          {stage === 4 && !isInstant && (
+                            <TypewriterLine 
+                              text="Loading modules..." 
+                              onComplete={() => onLineComplete(5)} 
+                              speed={30}
+                            />
+                          )}
+                        </div>
+                        
+                        {stage >= 5 && (
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full pl-6">
+                            {SKILL_CATEGORIES.map((category) => (
+                              <div key={category.name} className="border border-[rgba(0,200,255,0.15)] bg-[rgba(0,200,255,0.02)] rounded p-4">
+                                <div className="text-[var(--electric-blue)] text-xs tracking-widest mb-3 border-b border-[rgba(0,200,255,0.1)] pb-2 opacity-70">
+                                  [{category.name}]
+                                </div>
+                                <TypewriterBlock 
+                                  items={category.items} 
+                                  onComplete={handleBlockComplete} 
+                                  speed={20}
+                                  instant={isInstant}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {stage >= 6 && (
+                      <motion.div 
+                        initial={{ opacity: 0 }} 
+                        animate={{ opacity: [0, 1, 0] }} 
+                        transition={{ duration: 1, repeat: Infinity }}
+                        className="mt-6 text-[var(--electric-blue)] font-black text-xl ml-6"
+                      >
+                        _
+                      </motion.div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Enter Time Machine Button - Appears after typing completes */}
+                <div className="h-[100px] flex items-center justify-center w-full">
+                  <AnimatePresence>
+                    {stage >= 6 && (
+                      <motion.div
+                        initial={isInstant ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 20, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ duration: 0.8, delay: 0.2 }}
+                      >
+                        <motion.button
+                          id="enter-time-machine"
+                          data-magnetic
+                          onClick={handleEnterTimeMachine}
+                          className="relative font-orbitron font-bold text-base md:text-lg px-12 py-5 rounded-xl overflow-hidden"
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(0,200,255,0.1), rgba(138,92,255,0.1))',
+                            border: '1px solid rgba(0,200,255,0.5)',
+                            color: 'var(--electric-blue)',
+                            letterSpacing: '0.2em',
+                          }}
+                          whileHover={{
+                            scale: 1.05,
+                            boxShadow: '0 0 40px rgba(0,200,255,0.5), 0 0 80px rgba(0,200,255,0.25)',
+                            borderColor: 'rgba(0,200,255,0.9)',
+                          }}
+                          whileTap={{ scale: 0.97 }}
+                          animate={{
+                            boxShadow: [
+                              '0 0 20px rgba(0,200,255,0.3)',
+                              '0 0 40px rgba(0,200,255,0.6)',
+                              '0 0 20px rgba(0,200,255,0.3)',
+                            ],
+                          }}
+                          transition={{
+                            boxShadow: { duration: 2.5, repeat: Infinity, ease: 'easeInOut' },
+                          }}
+                        >
+                          {/* Shimmer overlay */}
+                          <motion.span
+                            className="absolute inset-0 holographic opacity-60"
+                            animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
+                            transition={{ duration: 3, repeat: Infinity }}
+                          />
+                          {/* Button text */}
+                          <span className="relative z-10 flex items-center gap-3">
+                            <motion.span
+                              animate={{ rotate: [0, 360] }}
+                              transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+                            >
+                              ⊕
+                            </motion.span>
+                            ENTER TIME MACHINE
+                            <motion.span
+                              animate={{ rotate: [0, -360] }}
+                              transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+                            >
+                              ⊕
+                            </motion.span>
+                          </span>
+                        </motion.button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Decorative corner elements */}
