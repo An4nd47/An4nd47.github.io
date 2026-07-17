@@ -231,7 +231,7 @@ export default function Hero() {
         )}
 
         {/* Main content */}
-        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen pt-16 pb-20 px-4">
+        <div className="relative z-10 flex flex-col items-center justify-center h-screen w-full px-4 overflow-hidden">
           
           <AnimatePresence mode="wait">
             {!initialized ? (
@@ -268,7 +268,7 @@ export default function Hero() {
                   style={{
                     boxShadow: '0 0 40px rgba(0,200,255,0.1), inset 0 0 20px rgba(0,200,255,0.05)',
                     border: '1px solid rgba(0,200,255,0.3)',
-                    minHeight: '480px'
+                    height: '520px'
                   }}
                 >
                   {/* Scan line effect inside terminal */}
