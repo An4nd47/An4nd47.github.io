@@ -134,7 +134,7 @@ export default function Hero() {
   const [portalActive, setPortalActive] = useState(false);
   const [initialized, setInitialized] = useState(isInstant);
   const [stage, setStage] = useState(isInstant ? 6 : 0);
-  const [blocksCompleted, setBlocksCompleted] = useState(0);
+  const [activeCategoryIndex, setActiveCategoryIndex] = useState(isInstant ? SKILL_CATEGORIES.length : 0);
   
   const containerRef = useRef(null);
   const mouseX = useMotionValue(0);
@@ -175,8 +175,8 @@ export default function Hero() {
     }, 200);
   }, []);
 
-  const handleBlockComplete = useCallback(() => {
-    setBlocksCompleted(prev => {
+  const handleCategoryComplete = useCallback(() => {
+    setActiveCategoryIndex(prev => {
       const next = prev + 1;
       if (next === SKILL_CATEGORIES.length) {
         setTimeout(() => setStage(6), 200);
@@ -386,18 +386,33 @@ export default function Hero() {
                         
                         {stage >= 5 && (
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full pl-6">
-                            {SKILL_CATEGORIES.map((category) => (
-                              <div key={category.name} className="border border-[rgba(0,200,255,0.15)] bg-[rgba(0,200,255,0.02)] rounded p-4">
-                                <div className="text-[var(--electric-blue)] text-xs tracking-widest mb-3 border-b border-[rgba(0,200,255,0.1)] pb-2 opacity-70">
-                                  [{category.name}]
+                            {SKILL_CATEGORIES.map((category, index) => (
+                              (isInstant || index <= activeCategoryIndex) && (
+                                <div key={category.name} className="border border-[rgba(0,200,255,0.15)] bg-[rgba(0,200,255,0.02)] rounded p-4">
+                                  <div className="text-[var(--electric-blue)] text-xs tracking-widest mb-3 border-b border-[rgba(0,200,255,0.1)] pb-2 opacity-70">
+                                    {(isInstant || index < activeCategoryIndex) ? (
+                                      `[${category.name}]`
+                                    ) : (
+                                      <TypewriterLine
+                                        text={`[${category.name}]`}
+                                        speed={15}
+                                        onComplete={() => {
+                                          // Note: The heading typing completes, but we start the items
+                                          // It's handled by TypewriterBlock starting automatically.
+                                        }}
+                                      />
+                                    )}
+                                  </div>
+                                  {(isInstant || index < activeCategoryIndex || (index === activeCategoryIndex /* wait for heading to somewhat type before starting items - could add a small delay but TypewriterBlock handles its own items */)) && (
+                                    <TypewriterBlock 
+                                      items={category.items} 
+                                      onComplete={index === activeCategoryIndex ? handleCategoryComplete : undefined} 
+                                      speed={20}
+                                      instant={isInstant || index < activeCategoryIndex}
+                                    />
+                                  )}
                                 </div>
-                                <TypewriterBlock 
-                                  items={category.items} 
-                                  onComplete={handleBlockComplete} 
-                                  speed={20}
-                                  instant={isInstant}
-                                />
-                              </div>
+                              )
                             ))}
                           </div>
                         )}

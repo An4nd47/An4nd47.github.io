@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import PageTransition from '../components/PageTransition';
+import { useVideoPlaying } from '../contexts/VideoPlayingContext';
 
 const FUTURE_SKILLS = [
   { name: 'Artificial Intelligence', icon: '⬡', group: 'AI' },
@@ -208,16 +209,19 @@ const QUOTE_WORDS = ['The', 'future', 'isn\'t', 'predicted.', 'It', 'is', 'engin
 export default function Future() {
   const navigate = useNavigate();
   const quoteRef = useRef(null);
-  const quoteInView = useInView(quoteRef, { once: true, margin: '-100px' });
+  const quoteInView = useInView(quoteRef, { once: false, margin: '-100px' });
   const [playing, setPlaying] = useState(null); // 'past' | null
   const videoRef = useRef(null);
+  const { setPlaying: setVideoCtx } = useVideoPlaying();
 
   const handlePast = () => {
     setPlaying('past');
+    setVideoCtx(true);
   };
 
   const handleVideoEnd = () => {
     setPlaying(null);
+    setVideoCtx(false);
     navigate('/past');
   };
 

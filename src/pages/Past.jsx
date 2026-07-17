@@ -3,6 +3,7 @@ import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import ParticleField from '../components/ParticleField';
 import PageTransition from '../components/PageTransition';
+import { useVideoPlaying } from '../contexts/VideoPlayingContext';
 
 const SKILL_SECTIONS = [
   {
@@ -56,13 +57,13 @@ const MILESTONES = [
 
 function SkillSection({ section, index }) {
   const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: '-80px' });
+  const inView = useInView(ref, { once: false, margin: '-80px' });
 
   return (
     <motion.div
       ref={ref}
       initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
-      animate={inView ? { opacity: 1, x: 0 } : {}}
+      animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
       transition={{ duration: 0.6, delay: index * 0.05 }}
       className="hologram-card rounded-xl p-5"
     >
@@ -93,7 +94,7 @@ function SkillSection({ section, index }) {
 
 function Milestone({ milestone, index, total }) {
   const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: '-60px' });
+  const inView = useInView(ref, { once: false, margin: '-60px' });
 
   return (
     <div ref={ref} className="flex gap-6 items-start">
@@ -149,13 +150,16 @@ export default function Past() {
   const navigate = useNavigate();
   const [playing, setPlaying] = useState(null); // 'future' | null
   const videoRef = useRef(null);
+  const { setPlaying: setVideoCtx } = useVideoPlaying();
 
   const handleFuture = () => {
     setPlaying('future');
+    setVideoCtx(true);
   };
 
   const handleVideoEnd = () => {
     setPlaying(null);
+    setVideoCtx(false);
     navigate('/future');
   };
 

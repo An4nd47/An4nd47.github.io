@@ -3,24 +3,29 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import ParticleField from '../components/ParticleField';
 import PageTransition from '../components/PageTransition';
+import { useVideoPlaying } from '../contexts/VideoPlayingContext';
 
 export default function TimeMachine() {
   const navigate = useNavigate();
   const [hover, setHover] = useState(null); // 'past' | 'future' | null
   const [playing, setPlaying] = useState(null); // 'past' | 'future' | null
   const videoRef = useRef(null);
+  const { setPlaying: setVideoCtx } = useVideoPlaying();
 
   const handlePast = () => {
     setPlaying('past');
+    setVideoCtx(true);
   };
 
   const handleFuture = () => {
     setPlaying('future');
+    setVideoCtx(true);
   };
 
   const handleVideoEnd = () => {
     const dest = playing;
     setPlaying(null);
+    setVideoCtx(false);
     navigate(dest === 'past' ? '/past' : '/future');
   };
 

@@ -4,6 +4,8 @@ import { AnimatePresence } from 'framer-motion';
 import Lenis from 'lenis';
 import CustomCursor from './components/CustomCursor';
 import LoadingScreen from './components/LoadingScreen';
+import FloatingContactMenu from './components/FloatingContactMenu';
+import { VideoPlayingProvider } from './contexts/VideoPlayingContext';
 import Hero from './pages/Hero';
 import TimeMachine from './pages/TimeMachine';
 import Past from './pages/Past';
@@ -50,9 +52,12 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <CustomCursor />
-      {loading && <LoadingScreen onComplete={handleLoadingComplete} />}
-      <AnimatedRoutes />
+      <VideoPlayingProvider>
+        <CustomCursor />
+        <FloatingContactMenu />
+        {loading && <LoadingScreen onComplete={handleLoadingComplete} />}
+        <AnimatedRoutes />
+      </VideoPlayingProvider>
     </BrowserRouter>
   );
 }
