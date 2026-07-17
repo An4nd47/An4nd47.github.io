@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVideoPlaying } from '../contexts/VideoPlayingContext';
+import { useSystemInit } from '../contexts/SystemInitContext';
 
 // ─── Configuration ─────────────────────────────────────────────────────────────
 const CONTACTS = [
@@ -168,6 +169,7 @@ export default function FloatingContactMenu() {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const { playing: videoPlaying } = useVideoPlaying();
+  const { initialized } = useSystemInit();
 
   // Collapse on outside click
   const handleOutsideClick = useCallback((e) => {
@@ -197,7 +199,7 @@ export default function FloatingContactMenu() {
 
   return (
     <AnimatePresence>
-      {!videoPlaying && (
+      {!videoPlaying && initialized && (
         <motion.div
           key="contact-widget"
           initial={{ opacity: 0, scale: 0.8 }}

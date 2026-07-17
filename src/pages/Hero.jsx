@@ -3,6 +3,7 @@ import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-mo
 import { useNavigate } from 'react-router-dom';
 import ParticleField from '../components/ParticleField';
 import PageTransition from '../components/PageTransition';
+import { useSystemInit } from '../contexts/SystemInitContext';
 
 // Audio Context for the typing sound
 let audioCtx = null;
@@ -132,9 +133,17 @@ export default function Hero() {
   const navigate = useNavigate();
   const isInstant = useRef(hasSeenAnimation).current;
   const [portalActive, setPortalActive] = useState(false);
-  const [initialized, setInitialized] = useState(isInstant);
+  const [localInitialized, setLocalInitialized] = useState(isInstant);
   const [stage, setStage] = useState(isInstant ? 6 : 0);
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(isInstant ? SKILL_CATEGORIES.length : 0);
+  const { setInitialized: setGlobalInit } = useSystemInit();
+
+  // On mount, if it's instant, set global initialized immediately
+  useEffect(() => {
+    if (isInstant) {
+      setGlobalInit(true);
+    }
+  }, [isInstant, setGlobalInit]);
   
   const containerRef = useRef(null);
   const mouseX = useMotionValue(0);
@@ -157,7 +166,8 @@ export default function Hero() {
 
   const handleInitialize = () => {
     initAudio();
-    setInitialized(true);
+    setLocalInitialized(true);
+    setGlobalInit(true);
     setStage(1);
     hasSeenAnimation = true;
   };
@@ -190,27 +200,31 @@ export default function Hero() {
       <div
         ref={containerRef}
         className="relative min-h-screen overflow-hidden"
-        style={{ background: 'var(--bg-dark)' }}
+        style={{ background: localInitialized ? 'var(--bg-dark)' : '#000000', transition: 'background-color 0.5s ease-in-out' }}
       >
         {/* Animated background layers */}
-        <div className="absolute inset-0 animated-grid opacity-40" />
-        <ParticleField color="blue" count={80} />
+        {localInitialized && (
+          <>
+            <div className="absolute inset-0 animated-grid opacity-40" />
+            <ParticleField color="blue" count={80} />
 
-        {/* Mouse-reactive light */}
-        <motion.div
-          className="absolute w-[600px] h-[600px] rounded-full pointer-events-none"
-          style={{
-            background: 'radial-gradient(circle, rgba(0,200,255,0.06) 0%, transparent 70%)',
-            left: lightX,
-            top: lightY,
-            transform: 'translate(-50%, -50%)',
-          }}
-        />
+            {/* Mouse-reactive light */}
+            <motion.div
+              className="absolute w-[600px] h-[600px] rounded-full pointer-events-none"
+              style={{
+                background: 'radial-gradient(circle, rgba(0,200,255,0.06) 0%, transparent 70%)',
+                left: lightX,
+                top: lightY,
+                transform: 'translate(-50%, -50%)',
+              }}
+            />
 
-        {/* Light beams */}
-        <div className="light-beam" style={{ left: '20%', animationDelay: '0s' }} />
-        <div className="light-beam" style={{ left: '60%', animationDelay: '4s' }} />
-        <div className="light-beam" style={{ left: '80%', animationDelay: '2s' }} />
+            {/* Light beams */}
+            <div className="light-beam" style={{ left: '20%', animationDelay: '0s' }} />
+            <div className="light-beam" style={{ left: '60%', animationDelay: '4s' }} />
+            <div className="light-beam" style={{ left: '80%', animationDelay: '2s' }} />
+          </>
+        )}
 
         {/* Portal activation overlay */}
         {portalActive && (
@@ -234,7 +248,7 @@ export default function Hero() {
         <div className="relative z-10 flex flex-col items-center justify-center h-screen w-full px-4 overflow-hidden">
           
           <AnimatePresence mode="wait">
-            {!initialized ? (
+            {!localInitialized ? (
               <motion.div
                 key="init-btn"
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -290,7 +304,7 @@ export default function Hero() {
                     <AnimatePresence>
                       {stage >= 6 && (
                         <motion.a 
-                          href="/Resume.pdf" 
+                          href="/Anand_MS_Resume_ATS (2).pdf" 
                           download="Anand_M_S_Resume.pdf"
                           initial={{ opacity: 0 }}
                           animate={{ 
