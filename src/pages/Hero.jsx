@@ -275,15 +275,45 @@ export default function Hero() {
                   <div className="absolute inset-0 pointer-events-none opacity-20" style={{ background: 'linear-gradient(transparent 50%, rgba(0, 0, 0, 0.25) 50%)', backgroundSize: '100% 4px' }} />
                   
                   {/* Terminal Header */}
-                  <div className="flex items-center gap-3 mb-6 border-b border-[rgba(0,200,255,0.2)] pb-4">
-                    <div className="flex gap-2">
-                      <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                      <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                      <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                  <div className="flex items-center justify-between mb-6 border-b border-[rgba(0,200,255,0.2)] pb-4 relative z-10">
+                    <div className="flex items-center gap-3">
+                      <div className="flex gap-2">
+                        <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                        <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                        <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                      </div>
+                      <span className="font-orbitron text-xs tracking-widest text-[var(--text-dim)] uppercase ml-2 hidden sm:block">
+                        System Boot Sequence - Terminal v1.0
+                      </span>
                     </div>
-                    <span className="font-orbitron text-xs tracking-widest text-[var(--text-dim)] uppercase ml-2">
-                      System Boot Sequence - Terminal v1.0
-                    </span>
+
+                    <AnimatePresence>
+                      {stage >= 6 && (
+                        <motion.a 
+                          href="/Resume.pdf" 
+                          download="Anand_M_S_Resume.pdf"
+                          initial={{ opacity: 0 }}
+                          animate={{ 
+                            opacity: [0.3, 0.7, 0.3], 
+                            borderColor: ['rgba(0,200,255,0.1)', 'rgba(0,200,255,0.4)', 'rgba(0,200,255,0.1)'],
+                            boxShadow: ['0 0 0px rgba(0,200,255,0)', '0 0 10px rgba(0,200,255,0.2)', '0 0 0px rgba(0,200,255,0)']
+                          }}
+                          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                          whileHover={{ 
+                            opacity: 1,
+                            borderColor: 'rgba(0,200,255,0.8)',
+                            boxShadow: '0 0 15px rgba(0,200,255,0.4)',
+                            transition: { duration: 0.2 }
+                          }}
+                          className="font-orbitron text-[10px] tracking-widest text-[var(--electric-blue)] cursor-pointer px-3 py-1.5 rounded border flex items-center gap-2 bg-[rgba(0,200,255,0.05)]"
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                          [ RESUME ]
+                        </motion.a>
+                      )}
+                    </AnimatePresence>
                   </div>
 
                   {/* Terminal Body (Typing Animation) */}
@@ -462,22 +492,7 @@ export default function Hero() {
         <div className="absolute bottom-4 left-4 w-12 h-12 pointer-events-none" style={{ borderBottom: '2px solid rgba(0,200,255,0.4)', borderLeft: '2px solid rgba(0,200,255,0.4)' }} />
         <div className="absolute bottom-4 right-4 w-12 h-12 pointer-events-none" style={{ borderBottom: '2px solid rgba(0,200,255,0.4)', borderRight: '2px solid rgba(0,200,255,0.4)' }} />
 
-        {/* Subtle Resume Download Link */}
-        <AnimatePresence>
-          {stage >= 6 && (
-            <motion.a 
-              href="/Resume.pdf" 
-              download="Anand_M_S_Resume.pdf"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
-              whileHover={{ opacity: 1, textShadow: '0 0 8px rgba(0,200,255,0.8)' }}
-              transition={{ duration: 0.5 }}
-              className="absolute bottom-6 right-8 font-orbitron text-[10px] tracking-widest text-[var(--electric-blue)] z-50 flex items-center gap-2 cursor-pointer"
-            >
-              [ RESUME.PDF ]
-            </motion.a>
-          )}
-        </AnimatePresence>
+
       </div>
     </PageTransition>
   );
