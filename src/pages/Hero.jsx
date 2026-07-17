@@ -387,17 +387,15 @@ export default function Hero() {
                   </div>
                 </div>
 
-                {/* Action Buttons - Appears after typing completes */}
-                <div className="h-auto md:h-[100px] flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 w-full mt-4 md:mt-0">
+                {/* Enter Time Machine Button - Appears after typing completes */}
+                <div className="h-[100px] flex items-center justify-center w-full">
                   <AnimatePresence>
                     {stage >= 6 && (
                       <motion.div
-                        className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6"
                         initial={isInstant ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 20, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         transition={{ duration: 0.8, delay: 0.2 }}
                       >
-                        {/* Enter Time Machine Button */}
                         <motion.button
                           id="enter-time-machine"
                           data-magnetic
@@ -449,31 +447,6 @@ export default function Hero() {
                             </motion.span>
                           </span>
                         </motion.button>
-
-                        {/* Download Resume Button */}
-                        <motion.a
-                          href="/Resume.pdf"
-                          download="Anand_M_S_Resume.pdf"
-                          className="relative font-orbitron font-bold text-sm md:text-base px-8 py-5 rounded-xl overflow-hidden flex items-center gap-3"
-                          style={{
-                            background: 'rgba(0, 0, 0, 0.4)',
-                            border: '1px solid rgba(0, 200, 255, 0.3)',
-                            color: 'var(--text-primary)',
-                            letterSpacing: '0.1em',
-                          }}
-                          whileHover={{
-                            scale: 1.05,
-                            boxShadow: '0 0 20px rgba(0,200,255,0.2)',
-                            borderColor: 'rgba(0,200,255,0.6)',
-                            color: 'var(--electric-blue)'
-                          }}
-                          whileTap={{ scale: 0.97 }}
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                          </svg>
-                          RESUME
-                        </motion.a>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -488,6 +461,23 @@ export default function Hero() {
         <div className="absolute top-4 right-4 w-12 h-12 pointer-events-none" style={{ borderTop: '2px solid rgba(0,200,255,0.4)', borderRight: '2px solid rgba(0,200,255,0.4)' }} />
         <div className="absolute bottom-4 left-4 w-12 h-12 pointer-events-none" style={{ borderBottom: '2px solid rgba(0,200,255,0.4)', borderLeft: '2px solid rgba(0,200,255,0.4)' }} />
         <div className="absolute bottom-4 right-4 w-12 h-12 pointer-events-none" style={{ borderBottom: '2px solid rgba(0,200,255,0.4)', borderRight: '2px solid rgba(0,200,255,0.4)' }} />
+
+        {/* Subtle Resume Download Link */}
+        <AnimatePresence>
+          {stage >= 6 && (
+            <motion.a 
+              href="/Resume.pdf" 
+              download="Anand_M_S_Resume.pdf"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              whileHover={{ opacity: 1, textShadow: '0 0 8px rgba(0,200,255,0.8)' }}
+              transition={{ duration: 0.5 }}
+              className="absolute bottom-6 right-8 font-orbitron text-[10px] tracking-widest text-[var(--electric-blue)] z-50 flex items-center gap-2 cursor-pointer"
+            >
+              [ RESUME.PDF ]
+            </motion.a>
+          )}
+        </AnimatePresence>
       </div>
     </PageTransition>
   );
